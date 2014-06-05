@@ -1,162 +1,230 @@
 //-------------------------------------------------------------------------------
-//      File Base: Program #3
+//      File Base: Program #4
 //       File ext: cpp
 //         Author: Frank Torres
 //        Created: 2/16/11
-//    Description: Using OpenGL to rotate a Pendulum
+//    Description: Using OpenGL to make a robot arm
 //-------------------------------------------------------------------------------
 
 #include <GL/glut.h>
-#include <math.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <time.h> 
 #include <iostream>
 
 using namespace std;
 
-//Global vars of prevaious point positions
-static GLfloat spin = -101.0;
+static int shoulder = 0, elbow = 0, wrist = 0;
+bool wireORsolid = false;
+bool viewType = false;
+int currentSizeW = 350;
+int currentSizeH = 350;
+static int xRot = 0, yRot = 0;
 
-enum
+void init(void) 
 {
-	POS = 1,
-	NEG,
-	NUL
-};
-
-static void reshape(int w, int h)
-{
-   if (w <= h) 
-   {
-      glViewport(0, (GLint) (h-w)/2, (GLsizei) w, (GLsizei) w);
-   } 
-   else 
-   {
-      glViewport((GLint) (w-h)/2, 0, (GLsizei) h, (GLsizei) h);
-   }
-
-   glMatrixMode(GL_PROJECTION);
-   glLoadIdentity();
-
-   gluOrtho2D(0.0,1.0,0.0,1.0);
-  
-
-   glMatrixMode(GL_MODELVIEW);
-   glLoadIdentity();
-
-   return;
+   glClearColor (0.0, 0.0, 0.0, 0.0);
+   glShadeModel (GL_FLAT);
 }
-
 
 void display(void)
 {
-	/* clear all pixels  */
-	glClear (GL_COLOR_BUFFER_BIT);
-	glPushMatrix();
-	glTranslatef(0.5f, 0.5f, 0.0f);
-	glRotatef(spin, 0.0, 0.0, 1.0);
+   //cout << wireORsolid << endl;
+   if(wireORsolid == false)
+   {
+		glClear (GL_COLOR_BUFFER_BIT);
+   }
+   else
+   {
+		glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+   }
+	
+   glPushMatrix();
+   glTranslatef (2.0, 0.0, 0.0);
 
-	glBegin(GL_POINTS);
-		glColor3f (0.0f, 1.0f, 0.0f);
-		glVertex3f(0.5f, 0.5f, 0.0f);
-	glEnd( );
+   glPushMatrix();
+   glTranslatef (-2.0, 0.0, 0.0);
+   glRotatef ((GLfloat) shoulder, 0.0, 0.0, 1.0);
+   glTranslatef (2.0, 0.0, 0.0);
+   glPushMatrix();
+   glScalef (5.0, 1.0, 1.0);
 
-	glBegin(GL_LINES);
-		glColor3f (1.0f, 1.0f, 1.0f);
-		glVertex3f(2.5f, 0.5f, 0.0f); // origin of the line
-		glVertex3f(0.0f, 0.0f, 0.0f); // ending point of the line
-	glEnd( );
+   if(wireORsolid == false)
+   {
+		glutWireCube (1.0);
+   }
+   else
+   {
+	   glColor3d(1.0,0.0,0.0);
+	   glutSolidCube (1.0);
+   }
 
-	glTranslatef(0.5f, 0.1f, 0.0f);
-	GLUquadric* disk = gluNewQuadric ( );
-	gluQuadricDrawStyle	(disk, GLU_FILL);
-	gluDisk	(disk, 0, 0.1f, 20.0f, 1.0f);
+   glPopMatrix();
+
+ 
+   glTranslatef (2.2, 0.0, 0.0);
+   glRotatef ((GLfloat) elbow, 0.0, 0.0, 1.0);
+   glTranslatef (2.2, 0.0, 0.0);
+   glPushMatrix();
+   glScalef (4.0, 1.0, 1.0);
+   if(wireORsolid == false)
+   {
+		glutWireCube (1.0);
+   }
+   else
+   {
+	   glColor3d(0.0,1.0,0.0);
+	   glutSolidCube (1.0);
+   }
+   glPopMatrix();
+  
+
+   glTranslatef (1.8, 0.0, 0.0);
+   glRotatef ((GLfloat) wrist, 0.0, 0.0, 1.0);
+   glTranslatef (1.8, 0.0, 0.0);
+   glPushMatrix();
+   glScalef (3.0, 1.0, 1.0);
+   if(wireORsolid == false)
+   {
+		glutWireCube (1.0);
+   }
+   else
+   {
+	   glColor3d(0.0,0.0,1.0);
+	   glutSolidCube (1.0);
+   }
+   glPopMatrix();
+
+   glPopMatrix();
+   glPopMatrix();
+   glutSwapBuffers();
 
 
-	/* don't wait!  
-	* start processing buffered OpenGL routines 
-	*/
-	glFlush ();
-	glPopMatrix();
-	glutSwapBuffers();
-}
-
-void init (void) 
-{
-/* select clearing color 	*/
-   glClearColor (0.0, 0.0, 0.0, 0.0);
-
-/* initialize viewing values  */
-   glMatrixMode(GL_PROJECTION);
+   glMatrixMode(GL_MODELVIEW);
    glLoadIdentity();
-   glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0);
+   glTranslatef (0.0, 0.0, -15.0);
+   glRotatef ((GLfloat) xRot,1.0, 0.0, 0.0);
+   glRotatef ((GLfloat) yRot,0.0, 1.0, 0.0);
 }
 
-void movePendulumPos(void)
+void reshape (int w, int h)
 {
-	spin = spin + 1;
-	glutPostRedisplay();
+	currentSizeW = w;
+	currentSizeH = h;
+	glViewport (0, 0, (GLsizei) w, (GLsizei) h); 
+   glMatrixMode (GL_PROJECTION);
+   glLoadIdentity ();
+   if(viewType == false)
+   {
+		gluPerspective(65.0, (GLfloat) w/(GLfloat) h, 1.0, 20.0);
+   }
+   else
+   {
+		glOrtho(-500.0, (GLfloat) currentSizeW, -500.0,(GLfloat) currentSizeH, 6.0, 20.0);
+   }
+   glMatrixMode(GL_MODELVIEW);
+   glLoadIdentity();
+   glTranslatef (0.0, 0.0, -15.0);
+   glRotatef ((GLfloat) xRot,1.0, 0.0, 0.0);
+   glRotatef ((GLfloat) yRot,0.0, 1.0, 0.0);
 }
 
-
-void movePendulumNeg(void)
+void keyboard (unsigned char key, int x, int y)
 {
-	spin = spin - 1;
-	glutPostRedisplay();
+   switch (key) {
+      case 's':
+         shoulder = (shoulder + 5) % 360;
+         glutPostRedisplay();
+         break;
+      case 'S':
+         shoulder = (shoulder - 5) % 360;
+         glutPostRedisplay();
+         break;
+      case 'e':
+         elbow = (elbow + 5) % 360;
+         glutPostRedisplay();
+         break;
+      case 'E':
+         elbow = (elbow - 5) % 360;
+         glutPostRedisplay();
+         break;
+	  case 'w':
+         wrist = (wrist + 5) % 360;
+         glutPostRedisplay();
+         break;
+      case 'W':
+         wrist = (wrist - 5) % 360;
+         glutPostRedisplay();
+         break;
+	case 'x':
+         xRot = (xRot + 1) % 360;
+         glutPostRedisplay();
+         break;
+      case 'X':
+         xRot = (xRot - 1) % 360;
+         glutPostRedisplay();
+         break;
+	case 'y':
+         yRot = (yRot + 1) % 360;
+         glutPostRedisplay();
+         break;
+    case 'Y':
+         yRot = (yRot - 1) % 360;
+         glutPostRedisplay();
+         break;
+	  case 'h':
+      if(wireORsolid == false)
+      {
+         glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+         wireORsolid = true;
+      }
+      else
+      {
+         glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB);
+         wireORsolid = false;
+      }
+		
+		glutPostRedisplay();
+		break;
+	  case 'p':
+		   glMatrixMode (GL_PROJECTION);
+         glLoadIdentity ();
+        if(viewType == false)
+		   {
+			   glOrtho(-500.0, (GLfloat) currentSizeW, -500.0, currentSizeH, 5.0, 200.0);
+            viewType = true;
+		   }
+		   else
+		   {
+            gluPerspective(65.0, (GLfloat) currentSizeW/(GLfloat) currentSizeH, 1.0, 20.0);
+			   viewType = false;
+		   }
+		   
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        glTranslatef (0.0, 0.0, -15.0);
+        glRotatef ((GLfloat) xRot,1.0, 0.0, 0.0);
+        glRotatef ((GLfloat) yRot,0.0, 1.0, 0.0);
+         glutPostRedisplay();
+		   break;
+      case 27:
+         exit(0);
+         break;
+      default:
+         break;
+   }
 }
-
-
-void processKeys(unsigned char key, int x, int y) {
-
-	if (key == 27) 
-		exit(0);
-	if (key == 43)
-		glutIdleFunc(movePendulumPos);
-	if (key == 45)
-		glutIdleFunc(movePendulumNeg);
-}
-
-void processMenuEvents(int option) {
-
-	switch (option) {
-		case POS : 
-			glutIdleFunc(movePendulumNeg);
-			break;
-		case NEG : 
-			glutIdleFunc(movePendulumPos);
-			break;
-		case NUL : 
-			glutIdleFunc(NULL);
-			break;
-	}
-}
-
-
-void createMenu() {
-
-	int menu;
-	menu = glutCreateMenu(processMenuEvents);
-	glutAddMenuEntry("Clockwise",POS);
-	glutAddMenuEntry("Counterclockwise",NEG);
-	glutAddMenuEntry("Stop",NUL);
-	glutAttachMenu(GLUT_RIGHT_BUTTON);
-}
-
 
 int main(int argc, char** argv)
 {
-	glutInit(&argc, argv);
+   glutInit(&argc, argv);
 	glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB);
-	glutInitWindowSize (250, 250); 
-	glutInitWindowPosition (200, 200);
-	glutCreateWindow ("Program #3");
-	init ();
-	glutDisplayFunc(display);
-	glutReshapeFunc(reshape);
-	glutKeyboardFunc(processKeys);
-	createMenu();
-	glutMainLoop();
-	return 0;   /* ANSI C requires main to return int. */
+   glutInitWindowSize (500, 500); 
+   glutInitWindowPosition (100, 100);
+   glutCreateWindow (argv[0]);
+   init ();
+   glutDisplayFunc(display); 
+   glutReshapeFunc(reshape);
+   glutKeyboardFunc(keyboard);
+   glutMainLoop();
+   return 0;
 }
 
